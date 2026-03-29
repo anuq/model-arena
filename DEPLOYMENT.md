@@ -19,142 +19,97 @@ Visit http://localhost:3000
 
 ### Prerequisites
 - Railway account (railway.app)
-- Docker Hub account (optional, for image caching)
 - OpenRouter API key
+- GitHub account with repo access
 
-### Steps
+### Quick Start
 
 1. **Connect your repo to Railway**
-   - Go to railway.app and create a new project
-   - Connect your GitHub repository
-   - Select this repo
+   - Go to [railway.app](https://railway.app)
+   - Click "+ New Project"
+   - Select "Deploy from GitHub repo"
+   - Authorize and select this repository
+   - Railway auto-detects both Dockerfiles
 
-2. **Configure environment variables**
-   - In Railway dashboard, go to your project
-   - Click "+ New" → "Database" → select **PostgreSQL** (if using database)
-   - Or create a new service for the backend
+2. **Add Backend Service**
+   - In Railway dashboard, click "+ New" → "Service" → "GitHub repo"
+   - Select the repo, choose "backend/Dockerfile"
+   - Set environment variable:
+     - `OPENROUTER_API_KEY=your_openrouter_api_key`
+   - Click Deploy
 
-3. **Backend Service**
-   - Railway will auto-detect the Dockerfile
-   - Set environment variable: `OPENROUTER_API_KEY=your_key`
-   - Note the internal URL (shows in Railway console)
+3. **Add Frontend Service**
+   - Click "+ New" → "Service" → "GitHub repo"
+   - Select the repo, choose "frontend/Dockerfile"
+   - Set environment variable:
+     - `BACKEND_URL=model-arena-backend.railway.internal`
+   - Click Deploy
 
-4. **Frontend Service**
-   - Build from `frontend/Dockerfile`
-   - Set `BACKEND_URL=model-arena-backend.railway.internal` (Railway's internal networking)
-   - Expose port 80
-
-5. **Deploy**
+4. **Done!**
    - Railway auto-deploys on git push
-   - Monitor logs in the dashboard
+   - Your frontend URL will be provided in the dashboard
+   - Check logs in the Railway console if issues arise
 
 ---
 
-## Render Deployment
-
-### Prerequisites
-- Render account (render.com)
-- OpenRouter API key
-- Git repository
-
-### Steps
-
-1. **Create Backend Service**
-   - Go to render.com dashboard
-   - Click "New +" → "Web Service"
-   - Connect your GitHub repo
-   - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `uvicorn main:app --host 0.0.0.0 --port 8000`
-   - Set Runtime Path: `backend`
-   - Environment Variables:
-     - `OPENROUTER_API_KEY=your_key`
-     - `DATA_DIR=/data`
-   - Deploy
-
-2. **Create Frontend Service**
-   - Click "New +" → "Web Service"
-   - Same repo
-   - **Dockerfile Path**: `frontend/Dockerfile`
-   - Environment Variables:
-     - `BACKEND_URL=<your-backend-service>.onrender.com`
-   - Deploy
-
-3. **Connect Services**
-   - Update `BACKEND_URL` in frontend to your backend's public URL
-   - Redeploy frontend
-
-4. **Verify**
-   - Visit your frontend URL
-   - Check browser console for any CORS/connection errors
-
----
-
-## Common Issues & Fixes
+## Troubleshooting
 
 ### Issue: "Cannot GET /api/..."
-**Cause**: Frontend cannot connect to backend
+**Cause**: Frontend cannot connect to backend  
 **Fix**:
-- Check `BACKEND_URL` environment variable
-- Verify backend service is running and healthy
-- Check nginx logs in frontend container: `docker logs <frontend-container>`
+- Verify `BACKEND_URL` environment variable is set correctly
+- Backend should be: `model-arena-backend.railway.internal`
+- Check Railway logs: dashboard → select backend service → Logs
 
 ### Issue: CORS errors in browser console
-**Cause**: Backend CORS policy not configured correctly
+**Cause**: Backend not accepting requests  
 **Fix**:
-- Ensure `allow_origins=["*"]` in `main.py` is set
-- Or replace with specific domain in production
+- Backend has `allow_origins=["*"]` by default (see `main.py`)
+- Should work for any frontend URL
+- Check backend logs for detailed errors
 
 ### Issue: "502 Bad Gateway"
-**Cause**: Backend service unreachable
+**Cause**: Frontend → backend connection failing  
 **Fix**:
-- Check backend health: `curl https://<backend-url>/api/health`
-- Verify `BACKEND_URL` in frontend matches backend's public URL
+- Test backend health: Go to `https://<your-frontend-url>/api/health`
+- Check if backend service is running/healthy in Railway
+- Verify environment variables are set
 
-### Issue: Build failing on Render/Railway
-**Cause**: Missing dependencies
+### Issue: Build failing on Railway
+**Cause**: Missing dependencies or configuration  
 **Fix**:
-- Ensure `requirements.txt` has all packages
-- Ensure `package.json` has all npm dependencies
-- Check Dockerfile build logs
+- Check Railway build logs for specific error
+- Ensure `requirements.txt` has all dependencies
+- Ensure `package.json` has all npm packages
+- Verify Dockerfile paths are correct
 
 ---
 
-## Production Tips
+## Production Checklist
 
-1. **Store API keys securely**
-   - Use platform's secret/environment variable system
-   - Never commit `.env` files
-   - Rotate keys periodically
-
-2. **Add health checks**
-   - Both services have `/api/health` endpoint
-   - Configure platform health checks accordingly
-
-3. **Monitor logs**
-   - Railway: Dashboard → Project → Service → Logs
-   - Render: Dashboard → Service → Logs
-
-4. **Set resource limits**
-   - Backend: Min 512MB RAM
-   - Frontend: Min 256MB RAM
-   - Adjust based on usage
-
-5. **Enable auto-deploys**
-   - Both platforms support git push → auto-deploy
-   - Configure in project settings
+- [ ] `OPENROUTER_API_KEY` set as secret in Railway
+- [ ] Both services deployed and showing "Running" status
+- [ ] Frontend and backend have matching `BACKEND_URL`
+- [ ] Health endpoints responding (check in browser)
+- [ ] Database directory persists (Railway handles volume automatically)
+- [ ] Auto-deploys configured on git push (Railway default)
+- [ ] Monitor logs regularly for errors
 
 ---
 
 ## Testing Connectivity
 
-After deployment, test the API:
+After deployment, verify everything works:
 
 ```bash
-# Test health
+# Health check
 curl https://<your-frontend-url>/api/health
 
-# List models
+# List available models
 curl https://<your-frontend-url>/api/models
+
+# Try the app in browser
+open https://<your-frontend-url>
 ```
 
-If these work, the deployment is successful!
+If these work, deployment is successful!
