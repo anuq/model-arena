@@ -8,7 +8,7 @@ cp .env.example .env
 # Edit .env and add your OpenRouter API key
 
 # 2. Build and run
-docker-compose up --build
+docker compose up --build
 ```
 
 Visit http://localhost:3000
@@ -24,31 +24,23 @@ Visit http://localhost:3000
 
 ### Quick Start
 
-1. **Connect your repo to Railway**
-   - Go to [railway.app](https://railway.app)
-   - Click "+ New Project"
-   - Select "Deploy from GitHub repo"
-   - Authorize and select this repository
-   - Railway auto-detects both Dockerfiles
-
-2. **Add Backend Service**
-   - In Railway dashboard, click "+ New" → "Service" → "GitHub repo"
-   - Select the repo, choose "backend/Dockerfile"
-   - Set environment variable:
-     - `OPENROUTER_API_KEY=your_openrouter_api_key`
-   - Click Deploy
-
-3. **Add Frontend Service**
+1. **Create Backend Service**
+   - Go to [railway.app](https://railway.app) and create/open a project
    - Click "+ New" → "Service" → "GitHub repo"
-   - Select the repo, choose "frontend/Dockerfile"
-   - Set environment variable:
-     - `BACKEND_URL=model-arena-backend.railway.internal`
-   - Click Deploy
+   - Select your repo, choose "backend/Dockerfile"
+   - Add env var: `OPENROUTER_API_KEY=your_key_here`
+   - Deploy
 
-4. **Done!**
-   - Railway auto-deploys on git push
-   - Your frontend URL will be provided in the dashboard
-   - Check logs in the Railway console if issues arise
+2. **Create Frontend Service**
+   - In the same project, click "+ New" → "Service" → "GitHub repo"
+   - Select repo, choose "frontend/Dockerfile"
+   - Add env var: `BACKEND_URL=model-arena-backend.railway.internal`
+   - Deploy
+
+3. **Access Your App**
+   - Frontend URL shown in Railway dashboard
+   - Auto-deploys on git push
+   - Check logs if issues arise
 
 ---
 
